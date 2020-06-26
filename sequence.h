@@ -1,49 +1,71 @@
 // sequence.h - interators having operator bool() const
 #pragma once
+#include <compare>
 #include <iterator>
 #include <vector>
 
 namespace seq {
 
-	//!!! shouldn't need this
+	// similar to iota
+	// use a + b*counter<>{} for arithmetic series
 	template<class T>
-	class ptr : public std::iterator_traits<T*> {
-		T* p;
+	class counter : public std::iterator_traits<T*> {
+		T t;
 	public:
-		ptr(T* p)
-			: p(p)
+		counter(T t = 0)
+			: t(t)
+		{ }
+		operator bool() const
 		{
-			std::vector<int> v(10);
-			auto r = v.rbegin();
+			return true;
 		}
-		ptr& operator++()
+		const T& operator*() const
 		{
-			++p;
+			return t;
+		}
+		T& operator*()
+		{
+			return t;
+		}
+		counter& operator++()
+		{
+			++t;
 
 			return *this;
 		}
-		ptr& operator++(int)
+		counter operator++(int)
 		{
-			ptr tmp(&this);
+			counter tmp = *this;
 
-			++p;
+			++t;
 
 			return tmp;
 		}
-		T operator*()
+		counter& operator--()
 		{
-			return *p;
+			--t;
+
+			return *this;
 		}
+		counter operator--(int)
+		{
+			counter tmp = *this;
+
+			--t;
+
+			return tmp;
+		}
+		// ??? operator+=
+		// ??? operator-=
 	};
 
 	template<class I>
-	class counted : public I {
+	class counted : public std::iterator_traits<I> {
 		size_t n;
+		I i;
 	public:
-		typename std::iterator_traits<I>::iterator_category iterator_category;
-//		I::reference ref;
 		counted(size_t n, I i)
-			: I{ i }, n(n)
+			: n(n), i(i)
 		{ }
 		size_t size() const
 		{
@@ -52,11 +74,27 @@ namespace seq {
 		operator bool() const {
 			return 0 != n;
 		}
+		bool operator!() const {
+			return !operator bool();
+		}
+		
+		operator I()
+		{
+			return i;
+		}
+		operator const I& () const
+		{
+			return i;
+		}
+
+		//
+		// overrides
+		//
 		counted& operator++() // override
 		{
 			if (0 != n) {
 				--n;
-				I::operator++();
+				i++;
 			}
 
 			return *this;
@@ -67,36 +105,92 @@ namespace seq {
 
 			if (0 != n) {
 				--n;
-				I::operator++();
+				i++;
 			}
 
 			return tmp;
 		}
-		/*
 		counted& operator--() // override
 		{
-			if (0 != n) {
-				++n;
-				I::operator--();
-			}
+			++n;
+			--i;
 
 			return *this;
 		}
-		*/
+		counted operator--(int) // override
+		{
+			counted tmp = *this;
+
+			++n;
+			i--;
+
+			return tmp;
+		}
+		// operator+=
+		// operator-=
 	};
 
 	template<class I>
-	class sentinal : public I {
-		I e;
+	class sentinal : public std::iterator_traits<I> {
+		I i, e;
 	public:
 		sentinal(I i, I e)
-			: I{ i }, e(e)
+			: i(i), e(e)
 		{ }
 		operator bool() const
 		{
-			return !I::operator==(e);
+			return i != e;
 		}
+		bool operator!() const
+		{
+			return !operator bool();
+		}
+		operator I()
+		{
+			return i;
+		}
+		operator const I& () const
+		{
+			return i;
+		}
+
 	};
+
+	// class extrapolate
+	// class memoize -> random access iterator
+
+	//
+	// Functions
+	//
+
+	// template<class C> inline auto reverse(C& c)
+	// { return sentinal(c.rbegi(), c.rend()); }
+
+	template<class I, class J>
+	inline J copy(I i, J j)
+	{
+		while (i) {
+			*j = *i;
+			++i;
+			++j;
+		}
+
+		return j;
+	}
+
+	template<class I, class J>
+	inline bool equal(I i, J j)
+	{
+		while (i && j) {
+			if (*i != *j) {
+				return false;
+			}
+			++i;
+			++j;
+		}
+
+		return !i && !j;
+	}
 
 	template<typename I>
 	inline I skip(int n, I i)
@@ -106,10 +200,11 @@ namespace seq {
 		return i;
 	}
 
+	// make_counted
 	template<typename I>
 	inline auto take(int n, I i)
 	{
-		return count(n, i);
+		return counted(n, i);
 	}
 
 
