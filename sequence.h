@@ -1,10 +1,32 @@
 // sequence.h - interators having operator bool() const
 #pragma once
 #include <compare>
+#include <initializer_list>
 #include <iterator>
 #include <vector>
 
 namespace seq {
+
+	template<class T>
+	class constant : public std::iterator_traits<const T*> {
+		T t;
+	public:
+		constant(T t = 0)
+			: t(t)
+		{ }
+		operator bool() const
+		{
+			return true;
+		}
+		T operator*() const
+		{
+			return t;
+		}
+		constant& operator++()
+		{
+			return *this;
+		}
+	};
 
 	// similar to iota
 	// use a + b*counter<>{} for arithmetic series
@@ -19,11 +41,7 @@ namespace seq {
 		{
 			return true;
 		}
-		const T& operator*() const
-		{
-			return t;
-		}
-		T& operator*()
+		T operator*() const
 		{
 			return t;
 		}
@@ -33,30 +51,6 @@ namespace seq {
 
 			return *this;
 		}
-		counter operator++(int)
-		{
-			counter tmp = *this;
-
-			++t;
-
-			return tmp;
-		}
-		counter& operator--()
-		{
-			--t;
-
-			return *this;
-		}
-		counter operator--(int)
-		{
-			counter tmp = *this;
-
-			--t;
-
-			return tmp;
-		}
-		// ??? operator+=
-		// ??? operator-=
 	};
 
 	template<class I>
@@ -64,96 +58,50 @@ namespace seq {
 		size_t n;
 		I i;
 	public:
+		typedef typename std::iterator_traits<I>::value_type value_type;
 		counted(size_t n, I i)
 			: n(n), i(i)
 		{ }
+		// remaining size to end
 		size_t size() const
 		{
 			return n;
 		}
-		operator bool() const {
+
+		operator bool() const 
+		{
 			return 0 != n;
 		}
-		bool operator!() const {
-			return !operator bool();
-		}
-		
-		operator I()
+		value_type operator*() const
 		{
-			return i;
+			return *i;
 		}
-		operator const I& () const
+		counted& operator++()
 		{
-			return i;
-		}
-
-		//
-		// overrides
-		//
-		counted& operator++() // override
-		{
-			if (0 != n) {
-				--n;
-				i++;
-			}
+			--n;
+			++i;
 
 			return *this;
 		}
-		counted operator++(int) // override
-		{
-			counted tmp = *this;
-
-			if (0 != n) {
-				--n;
-				i++;
-			}
-
-			return tmp;
-		}
-		counted& operator--() // override
-		{
-			++n;
-			--i;
-
-			return *this;
-		}
-		counted operator--(int) // override
-		{
-			counted tmp = *this;
-
-			++n;
-			i--;
-
-			return tmp;
-		}
-		// operator+=
-		// operator-=
 	};
 
 	template<class I>
-	class sentinal : public std::iterator_traits<I> {
-		I i, e;
+	class range : public I {
+		I e;
 	public:
-		sentinal(I i, I e)
-			: i(i), e(e)
+		// convert STL range to sequence
+		range(I i, I e)
+			: I(i), e(e)
+		{ }
+		// sequence over container elements
+		template<class C>
+		range(C& c)
+			: range(c.begin(), c.end())
 		{ }
 		operator bool() const
 		{
-			return i != e;
+			return !I::operator==(e);
 		}
-		bool operator!() const
-		{
-			return !operator bool();
-		}
-		operator I()
-		{
-			return i;
-		}
-		operator const I& () const
-		{
-			return i;
-		}
-
 	};
 
 	// class extrapolate
@@ -165,6 +113,67 @@ namespace seq {
 
 	// template<class C> inline auto reverse(C& c)
 	// { return sentinal(c.rbegi(), c.rend()); }
+
+	template<class F, class I>
+	class apply : public std::iterator_traits<I> {
+		const F& f;
+		I i;
+	public:
+		//typedef typename std::invoke_result<F,typename std::iterator_traits<I>::value_type>::type value_type;
+		apply(const F& f, I i)
+			: f(f), i(i)
+		{ }
+		operator bool() const
+		{
+			return i;
+		}
+		auto operator*() const -> decltype(f(*i))
+		{
+			return f(*i);
+		}
+		apply& operator++()
+		{
+			++i;
+
+			return *this;
+		}
+	};
+
+
+	template<class F, class I>
+	class filter : public std::iterator_traits<I> {
+		const F& f;
+		I i;
+	public:
+		typedef typename std::iterator_traits<I>::value_type value_type;
+		filter(const F& f, I i)
+			: f(f), i(i)
+		{
+			next();
+ 		}
+		operator bool() const
+		{
+			return i;
+		}
+		value_type operator*() const
+		{
+			return *i;
+		}
+		filter& operator++()
+		{
+			++i;
+			next();
+
+			return *this;
+		}
+	private:
+		void next()
+		{
+			while (i && !f(*i)) {
+				++i;
+			}
+		}
+	};
 
 	template<class I, class J>
 	inline J copy(I i, J j)
@@ -193,7 +202,7 @@ namespace seq {
 	}
 
 	template<typename I>
-	inline I skip(int n, I i)
+	inline I drop(int n, I i)
 	{
 		std::advance(i, n);
 
@@ -207,5 +216,14 @@ namespace seq {
 		return counted(n, i);
 	}
 
+	template<typename I>
+	inline auto sum(I i, typename std::iterator_traits<I>::value_type i0 = 0)
+	{
+		while (i) {
+			i0 += *i;
+			++i;
+		}
 
+		return i0;
+	}
 }
