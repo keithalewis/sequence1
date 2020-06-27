@@ -116,6 +116,24 @@ int test_counter_int = test_counter<int>();
 int test_counter_double = test_counter<double>();
 int test_counter_float = test_counter<float>();
 
+int test_null()
+{
+	{
+		auto n = null("abc");
+		assert(n);
+		assert(*n == 'a');
+		++n;
+		assert(*n == 'b');
+		++n;
+		assert(*n == 'c');
+		++n;
+		assert(!n);
+	}
+
+	return 0;
+}
+int test_null_ = test_null();
+
 int test_sum()
 {
 	int i[] = { 1, 2, 3 };

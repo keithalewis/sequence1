@@ -119,7 +119,6 @@ namespace seq {
 		const F& f;
 		I i;
 	public:
-		//typedef typename std::invoke_result<F,typename std::iterator_traits<I>::value_type>::type value_type;
 		apply(const F& f, I i)
 			: f(f), i(i)
 		{ }
@@ -127,7 +126,7 @@ namespace seq {
 		{
 			return i;
 		}
-		auto operator*() const -> decltype(f(*i))
+		auto operator*() const
 		{
 			return f(*i);
 		}
@@ -175,6 +174,44 @@ namespace seq {
 		}
 	};
 
+	template<class F, class I>
+	class truncate : public std::iterator_traits<I> {
+		const F& f;
+		I i;
+	public:
+		typedef typename std::iterator_traits<I>::value_type value_type;
+		truncate(const F& f, I i)
+			: f(f), i(i)
+		{
+		}
+		operator bool() const
+		{
+			return !f(*i);
+		}
+		value_type operator*() const
+		{
+			return *i;
+		}
+		truncate& operator++()
+		{
+			++i;
+
+			return *this;
+		}
+	};
+
+	template<class I>
+	inline auto null(I i)
+	{
+		return truncate([](auto t) { return t == 0; }, i);
+	}
+	template<class I>
+	inline auto epsilon(I i,
+		decltype(*i) epsilon = std::numeric_limits<decltype(*i)>::epsilon())
+	{
+		return truncate([epsilon](auto t) { return fabs(t) <= epsilon; }, i);
+	}
+
 	template<class I, class J>
 	inline J copy(I i, J j)
 	{
@@ -207,6 +244,17 @@ namespace seq {
 		std::advance(i, n);
 
 		return i;
+	}
+
+	template<class I>
+	inline size_t length(I i, size_t n = 0)
+	{
+		while (i) {
+			++n;
+			++i;
+		}
+
+		return n;
 	}
 
 	// make_counted
