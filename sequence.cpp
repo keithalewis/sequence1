@@ -5,6 +5,55 @@
 
 using namespace seq;
 
+template<class T>
+int test_array() 
+{
+	{
+		array<int> a({ 1, 2, 3 });
+		assert(a.size() == 3);
+		assert(a);
+		assert(*a == 1);
+		++a;
+		assert(a);
+		assert(*a == 2);
+		++a;
+		assert(a);
+		assert(*a == 3);
+		++a;
+		assert(!a);
+	}
+	{
+		T i[] = { 1, 2, 3 };
+		array<T> a(i);
+		assert(a);
+		assert(a.size() == 3);
+	}
+
+	return 0;
+}
+int test_array_int = test_array<int>();
+
+template<class T>
+int test_constant()
+{
+	{
+		constant<T> c(1);
+		constant<T> c2(c);
+		c = c2;
+
+		assert(c);
+		assert(*c == T(1));
+
+		++c;
+		assert(c);
+		assert(*c == T(1));
+
+	}
+
+	return 0;
+}
+int test_constant_int = test_constant<int>();
+
 int test_apply()
 {
 	{
@@ -67,27 +116,6 @@ int test_filter()
 	return 0;
 }
 int test_filter_ = test_filter();
-
-template<class T>
-int test_constant()
-{
-	{
-		constant<T> c(1);
-		constant<T> c2(c);
-		c = c2;
-
-		assert(c);
-		assert(*c == T(1));
-
-		++c;
-		assert(c);
-		assert(*c == T(1));
-
-	}
-
-	return 0;
-}
-int test_constant_int = test_constant<int>();
 
 template<class T>
 int test_counter()

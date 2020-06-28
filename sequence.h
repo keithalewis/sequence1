@@ -53,6 +53,38 @@ namespace seq {
 		}
 	};
 
+	template<class T>
+	class array : public std::iterator_traits<const T*> {
+		size_t n;
+		const T* i;
+	public:
+		template<size_t N>
+		array(const T (&i)[N])
+			: n(N), i(i)
+		{ }
+		// remaining size to end
+		size_t size() const
+		{
+			return n;
+		}
+
+		operator bool() const
+		{
+			return 0 != n;
+		}
+		T operator*() const
+		{
+			return *i;
+		}
+		array& operator++()
+		{
+			--n;
+			++i;
+
+			return *this;
+		}
+	};
+
 	template<class I>
 	class counted : public std::iterator_traits<I> {
 		size_t n;

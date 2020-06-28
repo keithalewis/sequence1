@@ -18,12 +18,12 @@ This can be used with `copy` to populate a container. For example
 	copy(apply(f, seq(src)), std::back_inserter(dest));
 ```
 will fill dest with `{f(1),f(2),f(3)}`. Note how sequences play nicely with STL.
-Even though `back_insterter` does not have `operator bool() const` this still
-works since copying is controlled by `apply` which uses `seq(src)` to determine
+Even though `back_inserter` does not have `operator bool() const` this still
+works since `copy` is controlled by `apply` which uses `seq(src)` to determine
 the end of the sequence.
 
 Sequences are handy for numerical computations. For example `pow(x)` is the
-sequence `{1,x,x^2,...}` and `factorial` is {0!,1!,2!,...}. The function
+sequence `{1,x,x^2,...}` and `factorial<>()` is {0!,1!,2!,...}. The function
 `epsilon` truncates a sequence when it encounters a term less than
 machine epsilon. Since 
 <math>e<sup>x</sup> = &sum; <sub>n &ge; 0</sub> x<sup>n</sup>/n!</math> 
