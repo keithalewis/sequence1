@@ -139,7 +139,7 @@ namespace seq {
 			return n;
 		}
 
-		operator bool() const 
+		operator bool() const
 		{
 			return 0 != n;
 		}
@@ -220,7 +220,7 @@ namespace seq {
 			: f(f), i(i)
 		{
 			next();
- 		}
+		}
 		operator bool() const
 		{
 			return i;
@@ -345,4 +345,37 @@ namespace seq {
 
 		return i0;
 	}
+
+	template<class Binop, class I, class J>
+	class binop { // common type *I, *J
+		static const Binop& op;
+		I i;
+		J j;
+	public:
+		binop(const Binop& op, I i, J j)
+			: op(op), i(i), j(j)
+		{ }
+		operator bool() const 
+		{
+			return i && j;
+		}
+		binop& operator++()
+		{
+			++i;
+			++j;
+
+			return *this;
+		}
+		auto operator*() const
+		{
+			return op(*i, *j);
+		}
+	};
 }
+/*
+template<class I, class J>
+inline auto operator+(I i, J j)
+{
+	return seq::binop(std::plus<T>{}, i, j);
+}
+*/

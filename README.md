@@ -27,8 +27,7 @@ sequence `{1,x,x^2,...}` and `factorial<>()` is {0!,1!,2!,...}. The function
 `epsilon` truncates a sequence when it encounters a term less than
 machine epsilon. Since 
 <math>e<sup>x</sup> = &sum; <sub>n &ge; 0</sub> x<sup>n</sup>/n!</math> 
-we can approximate this
-with
+we can approximate this with
 
 ```
 double exp(double x) { return sum(epsilon(pow(x)/factorial<>{})); }
