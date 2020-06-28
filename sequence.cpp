@@ -13,14 +13,32 @@ int test_array()
 		assert(a.size() == 3);
 		assert(a);
 		assert(*a == 1);
+
 		++a;
 		assert(a);
 		assert(*a == 2);
+		
 		++a;
 		assert(a);
 		assert(*a == 3);
+		
 		++a;
 		assert(!a);
+		
+		--a;
+		assert(a);
+		assert(*a == 3);
+		assert(a.size() == 1);
+		
+		a -= 2;
+		assert(a);
+		assert(*a == 1);
+		assert(a.size() == 3);
+		
+		a += 1;
+		assert(a);
+		assert(*a == 2);
+		assert(a.size() == 2);
 	}
 	{
 		T i[] = { 1, 2, 3 };

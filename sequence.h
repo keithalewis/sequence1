@@ -1,11 +1,83 @@
 // sequence.h - interators having operator bool() const
 #pragma once
 #include <compare>
-#include <initializer_list>
+//#include <initializer_list>
 #include <iterator>
 #include <vector>
 
 namespace seq {
+
+	// array<T>({a0, ...});
+	template<class T>
+	class array : public std::iterator_traits<const T*> {
+		size_t n;
+		const T* i;
+	public:
+		template<size_t N>
+		array(const T(&i)[N])
+			: n(N), i(i)
+		{ }
+		// remaining size to end
+		size_t size() const
+		{
+			return n;
+		}
+
+		operator bool() const
+		{
+			return 0 != n;
+		}
+		T operator*() const
+		{
+			return *i;
+		}
+		array& operator++()
+		{
+			--n;
+			++i;
+
+			return *this;
+		}
+		array operator++(int)
+		{
+			array a_ = *this;
+
+			--n;
+			++i;
+
+			return a_;
+		}
+		array& operator--()
+		{
+			++n;
+			--i;
+
+			return *this;
+		}
+		array operator--(int)
+		{
+			array a_ = *this;
+
+			++n;
+			--i;
+
+			return a_;
+		}
+		array& operator+=(ptrdiff_t m)
+		{
+			n -= m;
+			i += m;
+
+			return *this;
+		}
+		array& operator-=(ptrdiff_t m)
+		{
+			n += m;
+			i -= m;
+
+			return *this;
+		}
+	};
 
 	template<class T>
 	class constant : public std::iterator_traits<const T*> {
@@ -52,39 +124,6 @@ namespace seq {
 			return *this;
 		}
 	};
-
-	template<class T>
-	class array : public std::iterator_traits<const T*> {
-		size_t n;
-		const T* i;
-	public:
-		template<size_t N>
-		array(const T (&i)[N])
-			: n(N), i(i)
-		{ }
-		// remaining size to end
-		size_t size() const
-		{
-			return n;
-		}
-
-		operator bool() const
-		{
-			return 0 != n;
-		}
-		T operator*() const
-		{
-			return *i;
-		}
-		array& operator++()
-		{
-			--n;
-			++i;
-
-			return *this;
-		}
-	};
-
 	template<class I>
 	class counted : public std::iterator_traits<I> {
 		size_t n;
