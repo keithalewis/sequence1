@@ -362,10 +362,10 @@ namespace seq {
 
 	template<class F, class I>
 	class apply : public std::iterator_traits<I> {
-		const F& f; // no const ref???
+		F f;
 		I i;
 	public:
-		apply(const F& f, I i)
+		apply(F&& f, I i)
 			: f(f), i(i)
 		{ }
 		operator bool() const
@@ -425,9 +425,8 @@ namespace seq {
 		F f;
 		I i;
 	public:
-//		typedef typename std::iterator_traits<I>::value_type arg_type;
-//		typedef std::invoke_result_t<F,arg_type> value_type;
-		truncate(const F& f, I i)
+		typedef typename std::iterator_traits<I>::value_type value_type;
+		truncate(F&& f, I i)
 			: f(f), i(i)
 		{
 		}
@@ -435,7 +434,7 @@ namespace seq {
 		{
 			return !f(*i);
 		}
-		auto operator*() const
+		value_type operator*() const
 		{
 			return *i;
 		}
