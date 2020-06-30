@@ -176,6 +176,18 @@ int test_apply()
 		assert(t[1] == 4);
 		assert(t[2] == 9);
 	}
+	{
+		auto s = array({ 1, 2, 3 });
+		auto fs = apply([](int i) -> double { return i * i; }, s);
+		std::vector<double> t;
+		copy(fs, std::back_inserter(t));
+		assert(t.size() == 3);
+		assert(t[0] == 1);
+		assert(t[1] == 4);
+		assert(t[2] == 9);
+	}
+
+
 	return 0;
 }
 int test_apply_ = test_apply();
