@@ -25,10 +25,15 @@ the end of the sequence.
 Sequences are handy for numerical computations. For example `pow(x)` is the
 sequence `{1,x,x^2,...}` and `factorial<>()` is {0!,1!,2!,...}. The function
 `epsilon` truncates a sequence when it encounters a term less than
-machine epsilon. Since 
-<math>e<sup>x</sup> = &sum; <sub>n &ge; 0</sub> x<sup>n</sup>/n!</math> 
+machine epsilon. Since the exponential function
+<math>e<sup>x</sup> = &sum; <sub>n = 0</sub><sup>&infin;</sup> x<sup>n</sup>/n!</math> 
 we can approximate this with
 
 ```
-double exp(double x) { return sum(epsilon(pow(x)/factorial<>{})); }
+template<floating_point T>
+T exp(T x) { return sum(epsilon(pow(x)/factorial<T>{})); }
+```
+where
+```
+template<typename T> concept floating_point = std::is_floating_point_v<T>;
 ```
