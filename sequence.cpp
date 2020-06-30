@@ -113,20 +113,40 @@ int test_constant_int = test_constant<int>();
 int test_range()
 {
 	std::vector<int> v = { 1, 2, 3 };
-	auto s = make_range(v);
-	assert(s);
-	assert(*s == 1);
+	{
+		auto s = make_range(v);
+		assert(s);
+		assert(*s == 1);
 
-	++s;
-	assert(s);
-	assert(*s == 2);
+		++s;
+		assert(s);
+		assert(*s == 2);
 
-	++s;
-	assert(s);
-	assert(*s == 3);
+		++s;
+		assert(s);
+		assert(*s == 3);
 
-	++s;
-	assert(!s);
+		++s;
+		assert(!s);
+	}
+	/*
+	{
+		auto s = make_reverse(v);
+		assert(s);
+		assert(*s == 3);
+
+		++s;
+		assert(s);
+		assert(*s == 2);
+
+		++s;
+		assert(s);
+		assert(*s == 1);
+
+		++s;
+		assert(!s);
+	}
+	*/
 
 	return 0;
 }
@@ -165,7 +185,7 @@ int test_epsilon()
 	auto s = power(0.5);
 	auto e = epsilon(s);
 	auto n = length(e);
-	n = n;
+	assert(n == 52);
 
 	return 0;
 }
@@ -330,15 +350,20 @@ int test_exp()
 		assert(*ex == x * x / 2);
 		*/
 		auto eex = epsilon(ex);
-		auto n = length(eex);
-		n = n;
 		T expx = sum(eex);
-		expx = expx;
+		T expx_ = exp(x);
+		assert(fabs(expx - expx_) <= 2 * std::numeric_limits<T>::epsilon());
+	}
+	{
+		T x = 1;
+		assert(fabs(exp(x) - sum(epsilon(power(x) / factorial<T>())))
+			<= 2 * std::numeric_limits<T>::epsilon());
 	}
 
 	return 0;
 }
 int test_exp_double = test_exp<double>();
+int test_exp_float = test_exp<float>();
 
 int main()
 {

@@ -12,8 +12,8 @@
 namespace seq {
 
 	template<class I>
-	concept sequence = requires {
-		I::operator bool(); // const;
+	concept sequence = requires (I i) {
+		i.operator bool();
 	};
 
 	template<class... I>
@@ -38,6 +38,8 @@ namespace seq {
 		array(const T(&a)[N])
 			: n(N), a(a)
 		{ }
+		const auto operator<=>(const array&) const = default;
+
 		// remaining size to end
 		size_t size() const
 		{
@@ -108,6 +110,7 @@ namespace seq {
 		concatenate(I i, J j)
 			: i(i), j(j)
 		{ }
+		const auto operator<=>(const concatenate&) const = default;
 		operator bool() const
 		{
 			return i || j;
@@ -131,6 +134,7 @@ namespace seq {
 		constant(T t = 0)
 			: t(t)
 		{ }
+		const auto operator<=>(const constant&) const = default;
 		operator bool() const
 		{
 			return true;
@@ -154,6 +158,7 @@ namespace seq {
 		counter(T t = 0)
 			: t(t)
 		{ }
+		const auto operator<=>(const counter&) const = default;
 		operator bool() const
 		{
 			return true;
@@ -178,9 +183,11 @@ namespace seq {
 		counted(size_t n, I i)
 			: n(n), i(i)
 		{ }
+		const auto operator<=>(const counted&) const = default;
 		// remaining size to end
 		size_t size() const
 		{
+			auto i = std::reverse_iterator<I>;
 			return n;
 		}
 
@@ -210,6 +217,8 @@ namespace seq {
 		memoize(I i)
 			: i(i), vi(v.begin())
 		{ }
+		//const auto operator<=>(const memoize&) const = default;
+
 		operator bool() const
 		{
 			return vi != v.end() ? i : false;
@@ -246,6 +255,7 @@ namespace seq {
 		power(T t = T(1))
 			: t(t), tn(T(1))
 		{ }
+		const auto operator<=>(const power&) const = default;
 		operator bool() const
 		{
 			return true;
@@ -274,6 +284,7 @@ namespace seq {
 		pochhammer(T x = 0, long n = 1)
 			: x(x), xn(x), n(n)
 		{ }
+		const auto operator<=>(const pochhammer&) const = default;
 		operator bool() const
 		{
 			return true;
@@ -309,6 +320,12 @@ namespace seq {
 		range(I i, J e)
 			: I(i), e(e)
 		{ }
+		const auto operator<=>(const range& i_) const
+		{
+			const auto cmp = I::operator<=>(i_);
+
+			return cmp != 0 ? cmp : e <=> i_.e;
+		}
 		operator bool() const
 		{
 			return !I::operator==(e);
@@ -318,7 +335,12 @@ namespace seq {
 	template<class C>
 	inline auto make_range(C& c)
 	{
-		return seq::range(c.begin(), c.end());
+		return seq::range(begin(c), end(c));
+	}
+	template<class C>
+	inline auto make_reverse(C& c)
+	{
+		return seq::range(rbegin(c), rend(c));
 	}
 
 
@@ -525,12 +547,31 @@ namespace seq {
 }
 
 
-template<class I, class J>
+template<seq::sequence I, seq::sequence J>
+inline auto operator+(I i, J j)
+{
+	using T = decltype((*i) + (*j));
+
+	return seq::binop<std::plus<T>, I, J>(i, j);
+}
+template<seq::sequence I, seq::sequence J>
+inline auto operator-(I i, J j)
+{
+	using T = decltype((*i) - (*j));
+
+	return seq::binop<std::minus<T>, I, J>(i, j);
+}
+template<seq::sequence I, seq::sequence J>
+inline auto operator*(I i, J j)
+{
+	using T = decltype((*i) * (*j));
+
+	return seq::binop<std::multiplies<T>, I, J>(i, j);
+}
+template<seq::sequence I, seq::sequence J>
 inline auto operator/(I i, J j)
 {
-	using IT = typename std::iterator_traits<I>::value_type;
-	using JT = typename std::iterator_traits<J>::value_type;
-	using T = std::common_type_t<IT, JT>;
+	using T = decltype((*i)/(*j));
 
 	return seq::binop<std::divides<T>,I,J>(i, j);
 }
