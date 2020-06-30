@@ -425,7 +425,8 @@ namespace seq {
 		F f;
 		I i;
 	public:
-		typedef typename std::iterator_traits<I>::value_type value_type;
+//		typedef typename std::iterator_traits<I>::value_type arg_type;
+//		typedef std::invoke_result_t<F,arg_type> value_type;
 		truncate(const F& f, I i)
 			: f(f), i(i)
 		{
@@ -434,7 +435,7 @@ namespace seq {
 		{
 			return !f(*i);
 		}
-		value_type operator*() const
+		auto operator*() const
 		{
 			return *i;
 		}
