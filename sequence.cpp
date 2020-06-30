@@ -51,6 +51,44 @@ int test_array()
 }
 int test_array_int = test_array<int>();
 
+int test_concatenate()
+{
+	{
+		auto a = array({ 1, 2 });
+		auto b = array({ 3, 4 });
+
+		assert(equal(concatenate(a, b), array({ 1, 2, 3, 4 })));
+	}
+	{
+		auto a = array({ 1 });
+		auto b = array({ 2, 3, 4 });
+
+		assert(equal(concatenate(a, b), array({ 1, 2, 3, 4 })));
+	}
+	{
+		auto a = array<int>();
+		auto b = array({ 1, 2, 3, 4 });
+
+		assert(equal(concatenate(a, b), array({ 1, 2, 3, 4 })));
+	}
+	{
+		auto b = array<int>();
+		auto a = array({ 1, 2, 3, 4 });
+
+		assert(equal(concatenate(a, b), array({ 1, 2, 3, 4 })));
+	}
+	/*
+	{
+		auto ab = array({ 1, 2 }), array({ 3, 4 };
+		assert(equal(ab, array({ 1, 2, 3, 4 }));
+	}
+	*/
+
+
+	return 0;
+}
+int test_concatenate_ = test_concatenate();
+
 template<class T>
 int test_constant()
 {
@@ -71,6 +109,28 @@ int test_constant()
 	return 0;
 }
 int test_constant_int = test_constant<int>();
+
+int test_range()
+{
+	std::vector<int> v = { 1, 2, 3 };
+	auto s = make_range(v);
+	assert(s);
+	assert(*s == 1);
+
+	++s;
+	assert(s);
+	assert(*s == 2);
+
+	++s;
+	assert(s);
+	assert(*s == 3);
+
+	++s;
+	assert(!s);
+
+	return 0;
+}
+int test_range_ = test_range();
 
 int test_apply()
 {
@@ -99,6 +159,28 @@ int test_apply()
 	return 0;
 }
 int test_apply_ = test_apply();
+
+int test_extrapolate()
+{
+	auto s = extrapolate(array({ 1, 2 }), 3);
+	assert(s);
+	assert(*s == 1);
+
+	++s;
+	assert(s);
+	assert(*s == 2);
+
+	++s;
+	assert(s);
+	assert(*s == 3);
+
+	++s;
+	assert(s);
+	assert(*s == 3);
+
+	return 0;
+}
+int test_extrapolate_ = test_extrapolate();
 
 int test_filter()
 {

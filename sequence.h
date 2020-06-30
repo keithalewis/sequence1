@@ -3,19 +3,32 @@
 #include <compare>
 //#include <initializer_list>
 #include <iterator>
+#include <type_traits>
 #include <vector>
 
 namespace seq {
+
+	template<class... I>
+	struct common_iterator_traits {
+		using iterator_category = std::common_type<typename std::iterator_traits<I>::iterator_category...>;
+		using value_type = std::common_type<typename std::iterator_traits<I>::value_type...>;
+		using difference_type = std::common_type<typename std::iterator_traits<I>::difference_type...>;
+		using pointer = std::common_type<typename std::iterator_traits<I>::pointer...>;
+		using reference = std::common_type<typename std::iterator_traits<I>::reference...>;
+	};
 
 	// array<T>({a0, ...});
 	template<class T>
 	class array : public std::iterator_traits<const T*> {
 		size_t n;
-		const T* i;
+		const T* a;
 	public:
+		array()
+			: n(0), a(nullptr)
+		{ }
 		template<size_t N>
-		array(const T(&i)[N])
-			: n(N), i(i)
+		array(const T(&a)[N])
+			: n(N), a(a)
 		{ }
 		// remaining size to end
 		size_t size() const
@@ -29,12 +42,12 @@ namespace seq {
 		}
 		T operator*() const
 		{
-			return *i;
+			return *a;
 		}
 		array& operator++()
 		{
 			--n;
-			++i;
+			++a;
 
 			return *this;
 		}
@@ -43,14 +56,14 @@ namespace seq {
 			array a_ = *this;
 
 			--n;
-			++i;
+			++a;
 
 			return a_;
 		}
 		array& operator--()
 		{
 			++n;
-			--i;
+			--a;
 
 			return *this;
 		}
@@ -59,21 +72,45 @@ namespace seq {
 			array a_ = *this;
 
 			++n;
-			--i;
+			--a;
 
 			return a_;
 		}
 		array& operator+=(ptrdiff_t m)
 		{
 			n -= m;
-			i += m;
+			a += m;
 
 			return *this;
 		}
 		array& operator-=(ptrdiff_t m)
 		{
 			n += m;
-			i -= m;
+			a -= m;
+
+			return *this;
+		}
+	};
+
+	template<class I, class J>
+	class concatenate : public common_iterator_traits<I,J> {  
+		I i;
+		J j;
+	public:
+		concatenate(I i, J j)
+			: i(i), j(j)
+		{ }
+		operator bool() const
+		{
+			return i || j;
+		}
+		auto operator*()
+		{
+			return i ? *i : *j;
+		}
+		concatenate& operator++()
+		{
+			i ? ++i : ++j;
 
 			return *this;
 		}
@@ -156,24 +193,64 @@ namespace seq {
 		}
 	};
 
-	template<class I>
+	template<class I, class T = typename std::iterator_traits<I>::value_type>
+	class memoize : public std::iterator_traits<typename std::vector<T>::iterator> {
+		I i;
+		std::vector<T> v;
+		typename std::vector<T>::iterator vi; // current iterator
+	public:
+		memoize(I i)
+			: i(i), vi(v.begin())
+		{ }
+		operator bool() const
+		{
+			return vi != v.end() ? i : false;
+		}
+		T operator*() const
+		{
+			if (vi != v.end()) {
+				return *vi;
+			}
+			
+			T t = *i;
+			v.push_back(t);
+			vi = v.end();
+			
+			return t;
+		}
+		memoize& operator++()
+		{
+			if (vi != v.end()) {
+				++vi;
+			}
+			else {
+				++i;
+			}
+
+			return *this;
+		}
+	};
+
+	template<class I, class J>
 	class range : public I {
-		I e;
+		J e;
 	public:
 		// convert STL range to sequence
-		range(I i, I e)
+		range(I i, J e)
 			: I(i), e(e)
-		{ }
-		// sequence over container elements
-		template<class C>
-		range(C& c)
-			: range(c.begin(), c.end())
 		{ }
 		operator bool() const
 		{
 			return !I::operator==(e);
 		}
 	};
+	// sequence over container elements
+	template<class C>
+	inline auto make_range(C& c)
+	{
+		return seq::range(c.begin(), c.end());
+	}
+
 
 	// class extrapolate
 	// class memoize -> random access iterator
@@ -182,8 +259,14 @@ namespace seq {
 	// Functions
 	//
 
+	template<class I, class T = typename std::iterator_traits<I>::value_type>
+	inline auto extrapolate(I i, T t)
+	{
+		return concatenate(i, constant(t));
+	}
+
 	// template<class C> inline auto reverse(C& c)
-	// { return sentinal(c.rbegi(), c.rend()); }
+	// { return range(rbegin(c), c.rend(c)); }
 
 	template<class F, class I>
 	class apply : public std::iterator_traits<I> {
@@ -372,10 +455,18 @@ namespace seq {
 		}
 	};
 }
+
 /*
 template<class I, class J>
 inline auto operator+(I i, J j)
 {
 	return seq::binop(std::plus<T>{}, i, j);
+}
+*/
+/*
+template<class I, class J>
+inline auto operator,(I i, J j)
+{
+	return seq::concatenate(i, j);
 }
 */
