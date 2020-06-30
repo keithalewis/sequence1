@@ -365,6 +365,7 @@ namespace seq {
 		F f;
 		I i;
 	public:
+		typedef std::invoke_result_t<F, typename std::iterator_traits<I>::value_type> value_type;
 		apply(F&& f, I i)
 			: f(f), i(i)
 		{ }
@@ -372,7 +373,7 @@ namespace seq {
 		{
 			return i;
 		}
-		auto operator*() const
+		value_type operator*() const
 		{
 			return f(*i);
 		}
