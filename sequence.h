@@ -231,6 +231,68 @@ namespace seq {
 		}
 	};
 
+	template<class T>
+	class pow : public std::iterator_traits<const T*> {
+		T x, xn;
+	public:
+		pow(T x)
+			: x(x), xn(T(1))
+		{ }
+		operator bool() const
+		{
+			return true;
+		}
+		T operator*() const
+		{
+			return xn;
+		}
+		pow& operator++()
+		{
+			xn *= x;
+
+			return *this;
+		}
+	};
+
+	// Pochhammer sequence
+	// x^n = x(x + 1) ....
+	// x_n = x(x - 1) ....
+	template<class T>
+	class pochhammer : public std::iterator_traits<const T*> {
+		T x, xn;
+		long n;
+	public:
+		// rising (n > 0) or falling (n < 0) Pochhammer sequence
+		pochhammer(T x = 0, long n = 1)
+			: x(x), xn(x), n(n)
+		{ }
+		operator bool() const
+		{
+			return true;
+		}
+		T operator*() const
+		{
+			return xn == 0 ? T(1) : xn;
+		}
+		pochhammer& operator++()
+		{
+			if (x == 0) {
+				x = xn = 1;
+			}
+			else {
+				xn *= (x + n);
+				n > 0 ? ++n : --n;
+			}
+
+			return *this;
+		}
+	};
+	template<class T>
+	inline auto factorial(T t = 0)
+	{
+		return pochhammer(t);
+	}
+
 	template<class I, class J>
 	class range : public I {
 		J e;

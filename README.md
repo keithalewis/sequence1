@@ -23,10 +23,10 @@ works since `copy` is controlled by `apply` which uses `seq(src)` to determine
 the end of the sequence.
 
 Sequences are handy for numerical computations. For example `pow(x)` is the
-sequence `{1,x,x^2,...}` and `factorial<>()` is {0!,1!,2!,...}. The function
+sequence `{1,x,x^2,...}` and `factorial` is {0!,1!,2!,...}. The function
 `epsilon` truncates a sequence when it encounters a term less than
 machine epsilon. Since the exponential function
-<math>e<sup>x</sup> = &sum; <sub>n = 0</sub><sup>&infin;</sup> x<sup>n</sup>/n!</math> 
+<math>e<sup>x</sup> = &sum; <sub>n &ge; 0</sub> x<sup>n</sup>/n!</math> 
 we can approximate this with
 
 ```
