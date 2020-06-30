@@ -1,30 +1,38 @@
 // sequence.h - interators having operator bool() const
 #pragma once
+#include <cmath>
 #include <compare>
+#include <functional>
 //#include <initializer_list>
 #include <iterator>
+#include <limits>
 #include <type_traits>
 #include <vector>
 
 namespace seq {
 
-	template<class... I>
-	struct common_iterator_traits {
-		using iterator_category = std::common_type<typename std::iterator_traits<I>::iterator_category...>;
-		using value_type = std::common_type<typename std::iterator_traits<I>::value_type...>;
-		using difference_type = std::common_type<typename std::iterator_traits<I>::difference_type...>;
-		using pointer = std::common_type<typename std::iterator_traits<I>::pointer...>;
-		using reference = std::common_type<typename std::iterator_traits<I>::reference...>;
+	template<class I>
+	concept sequence = requires {
+		I::operator bool(); // const;
 	};
 
-	// array<T>({a0, ...});
+	template<class... I>
+	struct common_iterator_traits {
+		using iterator_category = std::common_type_t<typename std::iterator_traits<I>::iterator_category...>;
+		using value_type = std::common_type_t<typename std::iterator_traits<I>::value_type...>;
+		using difference_type = std::common_type_t<typename std::iterator_traits<I>::difference_type...>;
+		using pointer = std::common_type_t<typename std::iterator_traits<I>::pointer...>;
+		using reference = std::common_type_t<typename std::iterator_traits<I>::reference...>;
+	};
+
+	// {a[0], a[1], ...
 	template<class T>
 	class array : public std::iterator_traits<const T*> {
 		size_t n;
 		const T* a;
 	public:
-		array()
-			: n(0), a(nullptr)
+		array(size_t n = 0, const T* a = nullptr)
+			: n(n), a(a)
 		{ }
 		template<size_t N>
 		array(const T(&a)[N])
@@ -232,11 +240,11 @@ namespace seq {
 	};
 
 	template<class T>
-	class pow : public std::iterator_traits<const T*> {
-		T x, xn;
+	class power : public std::iterator_traits<const T*> {
+		T t, tn;
 	public:
-		pow(T x)
-			: x(x), xn(T(1))
+		power(T t = T(1))
+			: t(t), tn(T(1))
 		{ }
 		operator bool() const
 		{
@@ -244,20 +252,20 @@ namespace seq {
 		}
 		T operator*() const
 		{
-			return xn;
+			return tn;
 		}
-		pow& operator++()
+		power& operator++()
 		{
-			xn *= x;
+			tn *= t;
 
 			return *this;
 		}
 	};
 
 	// Pochhammer sequence
-	// x^n = x(x + 1) ....
-	// x_n = x(x - 1) ....
-	template<class T>
+	// rising  x^(n) = x(x + 1) ....
+	// falling (x)_n = x(x - 1) ....
+	template<class T = double>
 	class pochhammer : public std::iterator_traits<const T*> {
 		T x, xn;
 		long n;
@@ -332,7 +340,7 @@ namespace seq {
 
 	template<class F, class I>
 	class apply : public std::iterator_traits<I> {
-		const F& f;
+		const F& f; // no const ref???
 		I i;
 	public:
 		apply(const F& f, I i)
@@ -357,7 +365,7 @@ namespace seq {
 
 	template<class F, class I>
 	class filter : public std::iterator_traits<I> {
-		const F& f;
+		const F& f; // no const ref???
 		I i;
 	public:
 		typedef typename std::iterator_traits<I>::value_type value_type;
@@ -392,7 +400,7 @@ namespace seq {
 
 	template<class F, class I>
 	class truncate : public std::iterator_traits<I> {
-		const F& f;
+		F f;
 		I i;
 	public:
 		typedef typename std::iterator_traits<I>::value_type value_type;
@@ -421,11 +429,10 @@ namespace seq {
 	{
 		return truncate([](auto t) { return t == 0; }, i);
 	}
-	template<class I>
-	inline auto epsilon(I i,
-		decltype(*i) epsilon = std::numeric_limits<decltype(*i)>::epsilon())
+	template<class I, class T = typename std::iterator_traits<I>::value_type>
+	inline auto epsilon(I i, T eps = std::numeric_limits<T>::epsilon())
 	{
-		return truncate([epsilon](auto t) { return fabs(t) <= epsilon; }, i);
+		return truncate([=](T t) { return fabs(t) <= eps; }, i);
 	}
 
 	template<class I, class J>
@@ -492,13 +499,12 @@ namespace seq {
 	}
 
 	template<class Binop, class I, class J>
-	class binop { // common type *I, *J
-		static const Binop& op;
+	class binop : public common_iterator_traits<I,J> { 
 		I i;
 		J j;
 	public:
-		binop(const Binop& op, I i, J j)
-			: op(op), i(i), j(j)
+		binop(I i, J j)
+			: i(i), j(j)
 		{ }
 		operator bool() const 
 		{
@@ -513,18 +519,22 @@ namespace seq {
 		}
 		auto operator*() const
 		{
-			return op(*i, *j);
+			return Binop{}(*i, *j);
 		}
 	};
 }
 
-/*
+
 template<class I, class J>
-inline auto operator+(I i, J j)
+inline auto operator/(I i, J j)
 {
-	return seq::binop(std::plus<T>{}, i, j);
+	using IT = typename std::iterator_traits<I>::value_type;
+	using JT = typename std::iterator_traits<J>::value_type;
+	using T = std::common_type_t<IT, JT>;
+
+	return seq::binop<std::divides<T>,I,J>(i, j);
 }
-*/
+
 /*
 template<class I, class J>
 inline auto operator,(I i, J j)

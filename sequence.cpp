@@ -160,6 +160,17 @@ int test_apply()
 }
 int test_apply_ = test_apply();
 
+int test_epsilon()
+{
+	auto s = power(0.5);
+	auto e = epsilon(s);
+	auto n = length(e);
+	n = n;
+
+	return 0;
+}
+int test_epsilon_ = test_epsilon();
+
 int test_extrapolate()
 {
 	auto s = extrapolate(array({ 1, 2 }), 3);
@@ -262,6 +273,37 @@ int test_null()
 }
 int test_null_ = test_null();
 
+int test_factorial()
+{
+	{
+		pochhammer n;
+		assert(n && *n == 1);
+		assert(++n && *n == 1);
+		assert(++n && *n == 2);
+		assert(++n && *n == 6);
+		assert(++n && *n == 24);
+	}
+	{
+		double x = 1.23;
+		pochhammer n(x);
+		assert(n && *n == x);
+		assert(++n && *n == x * (x + 1));
+		assert(++n && *n == x * (x + 1) * (x + 2));
+		assert(++n && *n == x * (x + 1) * (x + 2) * (x + 3));
+	}
+	{
+		double x = 1.23;
+		pochhammer n(x, -1);
+		assert(n && *n == x);
+		assert(++n && *n == x * (x - 1));
+		assert(++n && *n == x * (x - 1) * (x - 2));
+		assert(++n && *n == x * (x - 1) * (x - 2) * (x - 3));
+	}
+
+	return 0;
+}
+int test_factorial_ = test_factorial();
+
 int test_sum()
 {
 	int i[] = { 1, 2, 3 };
@@ -271,28 +313,34 @@ int test_sum()
 }
 int test_sum_ = test_sum();
 
-int main()
+template<class T>
+int test_exp()
 {
-
 	{
-		int i[] = { 1, 2, 3 };
-		//ptr pi(i);
-		//counted c(3, pi);
-		//counted c(3, ptr(i));
-		counted c(3, i);
-		assert(c.size() == 3);
-		assert(1 == *c);
-		++c;
-		assert(c.size() == 2);
-		assert(2 == *c);
-		assert(3 == *++c);
-		assert(c.size() == 1);
-		assert(c);
-		++c;
-		assert(c.size() == 0);
-		assert(!c);
-
+		T x = 1;
+		auto xn = power(x);
+		auto f = factorial<T>();
+		auto ex = xn/f;
+		/*
+		assert(ex);
+		assert(*ex == 1);
+		++ex;
+		assert(*ex == x);
+		++ex;
+		assert(*ex == x * x / 2);
+		*/
+		auto eex = epsilon(ex);
+		auto n = length(eex);
+		n = n;
+		T expx = sum(eex);
+		expx = expx;
 	}
 
+	return 0;
+}
+int test_exp_double = test_exp<double>();
+
+int main()
+{
 	return 0;
 }
