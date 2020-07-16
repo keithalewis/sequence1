@@ -25,7 +25,7 @@ namespace seq {
 		using reference = std::common_type_t<typename std::iterator_traits<I>::reference...>;
 	};
 
-	// {a[0], a[1], ...
+	// {a[0], a[1], ... }
 	template<class T>
 	class array : public std::iterator_traits<const T*> {
 		size_t n;
@@ -204,6 +204,43 @@ namespace seq {
 			--n;
 			++i;
 
+			return *this;
+		}
+	};
+
+	// convert iterator to sequence based on sentinal
+	template<class I, class S>
+	class sentinal : public I {
+		S s;
+	public:
+		sentinal(I i, S s)
+			: I(i), s(s)
+		{ }
+		operator bool() const
+		{
+			return !I::operator==(s);
+		}
+	};
+
+	template<class I, class S>
+	class split {
+		I i;
+		S s;
+		sentinal<I, S> is;
+	public:
+		split(I i, S s)
+			: i(i), s(s), is(i,s)
+		{ }
+		operator bool() const
+		{
+			return i;
+		}
+		auto operator*()
+		{
+			return sentinal<I&,S>(i, s);
+		}
+		split& operator++()
+		{
 			return *this;
 		}
 	};

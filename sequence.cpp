@@ -377,6 +377,25 @@ int test_exp()
 int test_exp_double = test_exp<double>();
 int test_exp_float = test_exp<float>();
 
+int test_sentinal()
+{
+	std::vector<int> v{ 1, 2, 3 };
+	sentinal s(v.begin(), v.end());
+	assert(s);
+	assert(*s == 1);
+	++s;
+	assert(*s == 2);
+	s++;
+	s -= 1;
+	s += 1;
+	assert(*s == 3);
+	++s;
+	assert(!s);
+
+	return 0;
+}
+int test_sentinal_ = test_sentinal();
+
 int main()
 {
 	return 0;

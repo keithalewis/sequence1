@@ -4,6 +4,9 @@ A _sequence_ is an iterator that has an `operator bool() const` member to
 indicate the end instead of checking for equality with an `end` sentinal.
 This allows for cleaner, composable algorithms.
 
+This is not a production quality library. It is just code snippets to
+illustrate how there might be a better way than ranges.
+
 When Raymond Chen points out 
 [the STL sucks](https://devblogs.microsoft.com/oldnewthing/20200228-00/) you
 know it's bad. 
@@ -36,4 +39,20 @@ T exp(T x) { return sum(epsilon(pow(x)/factorial<T>{})); }
 where
 ```
 template<typename T> concept floating_point = std::is_floating_point_v<T>;
+```
+
+Splitting a sequence based on a delimiter just turns the sequence into
+a sequence of sequences. 
+```
+	char s[] = "Hello sequence";
+	auto hs = split(s, " ");
+	while (hs) {
+		cout << *hs << endl;
+		++hs;
+	}
+```
+prints
+```
+Hello
+sequence
 ```
